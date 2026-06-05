@@ -18,7 +18,7 @@
 --b-coral:rgba(212,87,42,.28);--b-teal:rgba(30,110,104,.35);
 --radius:10px;
 }
-html,body{height:100%;font-family:'DM Sans',sans-serif;background:#071e1c;color:var(--cream);overflow:hidden}
+html,body{height:100%;min-height:600px;font-family:'DM Sans',sans-serif;background:#071e1c;color:var(--cream);overflow:hidden}
 .bg{position:fixed;inset:0;z-index:0;background:linear-gradient(160deg,#071e1c 0%,#0d3d3a 40%,#0a2820 70%,#14120d 100%);pointer-events:none}
 .bg svg{position:absolute}
 .app{position:relative;z-index:1;display:grid;grid-template-columns:380px 1fr;height:100vh;width:100%}
@@ -77,9 +77,9 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:#071e1c;color:
 .upbox input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 .upbox span{font-size:10px;color:rgba(245,237,227,.28);pointer-events:none;text-align:center;padding:0 8px}
 .upprev{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
-.map-area{display:flex;flex-direction:column;height:100vh;overflow:hidden;position:relative}
-.map-container{flex:1;position:relative;min-height:0}
-#map{width:100%;height:100%}
+.map-area{display:flex;flex-direction:column;height:100vh;min-height:500px;overflow:hidden;position:relative}
+.map-container{flex:1;position:relative;min-height:380px;height:380px}
+#map{width:100%;height:100%;min-height:380px}
 .legend{position:absolute;bottom:12px;right:12px;background:rgba(7,18,17,.82);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:7px 11px;z-index:500;font-size:10px;color:rgba(245,237,227,.6)}
 .ldot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle}
 .feat-ribbon{position:absolute;top:12px;left:12px;background:rgba(201,164,74,.88);color:#2a1600;font-size:10px;padding:4px 10px;border-radius:10px;font-weight:700;z-index:500;pointer-events:none;display:none}
@@ -156,127 +156,550 @@ html,body{overflow:auto}
 </div>
 <div class="modal-bg" id="qr-modal"> <div class="qr-box"> <div class="sheet-handle" style="margin-bottom:10px"></div> <h3 id="qr-title" style="font-family:'Playfair Display',serif;font-size:15px;color:var(--cream);margin-bottom:3px"></h3> <p id="qr-sub" style="font-size:10px;color:rgba(245,237,227,.45);margin-bottom:13px"></p> <div id="qr-canvas" style="display:block;margin:0 auto;border-radius:6px;overflow:hidden"></div> <p style="font-size:10px;color:rgba(245,237,227,.35);margin-top:8px;text-align:center">Place at the mural — visitors scan to open the full map</p> <div style="display:flex;gap:8px;margin-top:12px;justify-content:center"> <button class="abtn" id="qr-dl">⬇ Download</button> <button class="abtn" id="qr-close">✕ Close</button> </div> </div>
 </div>
-<script>const ADMIN_PW = "murals2024";
-const BASE_URL = "https://galvestonmurals.org/map";
-const BOUNDS = L.latLngBounds(L.latLng(29.295,-94.808), L.latLng(29.308,-94.789));
-const IS_MOBILE = () => window.innerWidth <= 680;
-const DEF_MURALS = [ {id:1,title:"Absolute Equality",address:"22nd & The Strand",lat:29.3017,lng:-94.7985,artist:"Reginald C. Adams",bio:"Houston-based artist known for large-scale public works exploring justice and identity. Commissioned through the Juneteenth Legacy Project.",website:"https://www.reginaldc-adams.com",year:2021,desc:"Covering 5,000 sq ft, this landmark mural honors Galveston as the Birthplace of Juneteenth.",img:"",artistImg:"",featured:true,visited:false}, {id:2,title:"Greetings From Galveston",address:"23rd & The Strand",lat:29.3015,lng:-94.7975,artist:"Gabriel Prusmak",bio:"Local Galveston artist celebrated for colorful murals blending coastal imagery with bold typography.",website:"",year:2016,desc:"Painted in vintage postcard style, each letter highlights a different facet of Galveston.",img:"",artistImg:"",featured:false,visited:false}, {id:3,title:"I Love Galveston",address:"24th & The Strand",lat:29.3013,lng:-94.7965,artist:"Gabriel Prusmak",bio:"Local Galveston artist celebrated for colorful murals blending coastal imagery with bold typography.",website:"",year:2018,desc:"Marine life surrounds a hand-lettered 'i ❤️ galveston' in this beloved coastal mural.",img:"",artistImg:"",featured:false,visited:false}, {id:4,title:"Postoffice Street Collection",address:"22nd & Post Office St",lat:29.3008,lng:-94.7982,artist:"Multiple Artists",bio:"A 2025 series by local and visiting artists adding fresh color to the Cultural Arts District.",website:"",year:2025,desc:"New murals along storefronts reflecting the creative energy of Post Office Street.",img:"",artistImg:"",featured:false,visited:false}, {id:5,title:"Huli Huli Hut Mural",address:"25th & Post Office St",lat:29.3006,lng:-94.797,artist:"Justin Lopez",bio:"Galveston-based muralist whose tropical coastal style brings warmth and energy to island businesses.",website:"",year:2023,desc:"A surfer gazing over the Gulf in bold tropical colors — pure island spirit.",img:"",artistImg:"",featured:false,visited:false}, {id:6,title:"Stay Beach Box Mural",address:"25th & Market St",lat:29.301,lng:-94.7968,artist:"Carlos Villasana",bio:"Galveston artist exploring spray paint techniques through large-format public commissions.",website:"",year:2022,desc:"Bold coastal imagery adding color and energy to the Rosenberg Ave corridor.",img:"",artistImg:"",featured:false,visited:false}, {id:7,title:"Do You Hear the Sound of Galveston?",address:"28th & Seawall Blvd",lat:29.2967,lng:-94.794,artist:"Sasha Primo",bio:"Latin American artist whose large-scale works engage with local history and architecture.",website:"https://sashaprimo.com",year:2024,desc:"A 20×50ft mural honoring conductor Willard Dickerson, who broke racial barriers in Galveston schools.",img:"",artistImg:"",featured:false,visited:false},
-];
-const DEF_TEXTS = {title:"Galveston's Historic Downtown Cultural Arts District",sub1:"Murals Located in the Cultural Arts District",sub2:"19th Street to 27th Street · Broadway to Bay",badge:"📍 Post Office Street Corridor",ppTitle:"🗺️ Mural Passport"};
-let murals = null;
-let texts = null;
-let selId = null, admin = false;
-let pMural = '', pArtist = '';
-let mPMural = '', mPArtist = '';
-let eMural = null, eArtist = null;
-let map, markers = {};
-function save(){
-  try{ localStorage.setItem('gv_m7', JSON.stringify(murals)); return; }catch(e){}
-  try{ sessionStorage.setItem('gv_m7', JSON.stringify(murals)); return; }catch(e){}
-  // stored in memory only as fallback
+<script>
+var ADMIN_PW = "murals2024";
+var BASE_URL = "https://artsdowntowngtx-cloud.github.io/galveston-murals";
+var SITE_ID = "78ce33e0-811b-4236-8061-566fae2592a5";
+var COLLECTION = "Murals";
+var API_BASE = "https://www.wixapis.com/wix-data/v2/dataItems";
+var BOUNDS = L.latLngBounds(L.latLng(29.295,-94.808), L.latLng(29.308,-94.789));
+var IS_MOBILE = function(){ return window.innerWidth <= 680; };
+var murals = [], selId = null, admin = false;
+var pMural = "", pArtist = "", mPMural = "", mPArtist = "", eMural = null, eArtist = null;
+var map, markers = {};
+var texts = {
+ title: "Galveston's Historic Downtown Cultural Arts District",
+ sub1: "Murals Located in the Cultural Arts District",
+ sub2: "19th Street to 27th Street - Broadway to Bay",
+ badge: "Post Office Street Corridor",
+ ppTitle: "Mural Passport"
+};
+function getVisited(){ try{ return JSON.parse(localStorage.getItem("gv_visited") || "{}"); } catch(e){ return {}; } }
+function setVisited(id, val){ try{ var v = getVisited(); v[id] = val; localStorage.setItem("gv_visited", JSON.stringify(v)); } catch(e){} }
+function isVisited(id){ return !!getVisited()[id]; }
+function saveTxt(){ try{ localStorage.setItem("gv_t10", JSON.stringify(texts)); } catch(e){} }
+function showLoading(msg){
+ var el = document.getElementById("gv-loading");
+ if(!el){
+ el = document.createElement("div");
+ el.id = "gv-loading";
+ el.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(7,30,28,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif";
+ el.innerHTML = '<div style="width:40px;height:40px;border:3px solid rgba(212,87,42,.3);border-top-color:#d4572a;border-radius:50%;animation:spin 0.8s linear infinite"></div><p id="gv-load-msg" style="color:#f5ede3;margin-top:14px;font-size:13px;text-align:center;padding:0 20px"></p><style>@keyframes spin{to{transform:rotate(360deg)}}</style>';
+ document.body.appendChild(el);
+ }
+ document.getElementById("gv-load-msg").textContent = msg || "Loading...";
+ el.style.display = "flex";
 }
-function saveTxt(){
-  try{ localStorage.setItem('gv_t7', JSON.stringify(texts)); return; }catch(e){}
-  try{ sessionStorage.setItem('gv_t7', JSON.stringify(texts)); return; }catch(e){}
+function hideLoading(){ var el = document.getElementById("gv-loading"); if(el) el.style.display = "none"; }
+function wixHeaders(){
+ return {
+ "Content-Type": "application/json",
+ "wix-site-id": SITE_ID
+ };
 }
-function loadData(key, def){
-  try{ const v=localStorage.getItem(key); if(v) return JSON.parse(v); }catch(e){}
-  try{ const v=sessionStorage.getItem(key); if(v) return JSON.parse(v); }catch(e){}
-  return def;
+function itemToMural(item){
+ var d = item.data || item;
+ return {
+ _id: item._id || item.id || d._id,
+ title: d.title || "",
+ address: d.address || "",
+ lat: parseFloat(d.lat) || 0,
+ lng: parseFloat(d.lng) || 0,
+ artist: d.artist || "",
+ bio: d.bio || "",
+ website: d.website || "",
+ year: d.year || "",
+ desc: d.desc || "",
+ img: d.img || "",
+ artistImg: d.artistImg || "",
+ featured: d.featured || false,
+ visited: isVisited(item._id || item.id || d._id)
+ };
 }
-function applyTexts(){ document.getElementById('hdr-title').textContent = texts.title; document.getElementById('hdr-sub1').textContent = texts.sub1; document.getElementById('hdr-sub2').textContent = texts.sub2; document.getElementById('hdr-badge').textContent = texts.badge; document.getElementById('pp-title').textContent = texts.ppTitle; if(admin){ document.getElementById('et-title').value = texts.title; document.getElementById('et-sub1').value = texts.sub1; document.getElementById('et-sub2').value = texts.sub2; document.getElementById('et-badge').value = texts.badge; document.getElementById('et-pp').value = texts.ppTitle; document.getElementById('m-et-title').value = texts.title; document.getElementById('m-et-sub1').value = texts.sub1; document.getElementById('m-et-sub2').value = texts.sub2; document.getElementById('m-et-badge').value = texts.badge; document.getElementById('m-et-pp').value = texts.ppTitle; }
+async function loadMurals(){
+ showLoading("Loading murals...");
+ try{
+ var url = API_BASE + "?dataCollectionId=" + COLLECTION + "&limit=100";
+ var resp = await fetch(url, { headers: wixHeaders() });
+ var data = await resp.json();
+ if(data.dataItems && data.dataItems.length > 0){
+ murals = data.dataItems.map(itemToMural);
+ } else {
+ murals = [];
+ }
+ } catch(e){
+ console.error("Load error:", e);
+ murals = [];
+ }
+ hideLoading();
+ renderMarkers();
+ renderList();
+ updatePassport();
+ setTimeout(function(){ if(map) map.invalidateSize(); }, 300);
 }
-function makePin(m){ const c = m.visited ? '#1e6e68' : '#d4572a'; const inner = m.img ? `<img src="${m.img}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>` : `<span style="font-size:13px;color:${c};font-weight:800">${(m.title||'?')[0]}</span>`; return L.divIcon({ html:`<div style="width:50px;height:62px;display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 3px 10px rgba(0,0,0,.6))"> <div style="width:44px;height:44px;border-radius:50%;border:3px solid ${c};overflow:hidden;background:#f0ece8;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.35)">${inner}</div> <div style="width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:14px solid ${c};margin-top:-1px"></div> </div>`, iconSize:[50,62], iconAnchor:[25,62], className:'' });
+async function saveMural(mural){
+ try{
+ var url = API_BASE + "?dataCollectionId=" + COLLECTION;
+ var body = {
+ dataItem: {
+ data: {
+ title: mural.title,
+ address: mural.address,
+ lat: mural.lat,
+ lng: mural.lng,
+ artist: mural.artist,
+ bio: mural.bio,
+ website: mural.website,
+ year: mural.year,
+ desc: mural.desc,
+ img: mural.img || "",
+ artistImg: mural.artistImg || "",
+ featured: mural.featured || false
+ }
+ }
+ };
+ var resp = await fetch(url, {
+ method: "POST",
+ headers: wixHeaders(),
+ body: JSON.stringify(body)
+ });
+ var data = await resp.json();
+ return data.dataItem ? itemToMural(data.dataItem) : null;
+ } catch(e){
+ console.error("Save error:", e);
+ return null;
+ }
 }
-function initMap(){ map = L.map('map',{center:[29.3005,-94.7978],zoom:16,minZoom:15,maxZoom:18,maxBounds:BOUNDS,maxBoundsViscosity:1.0}); L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:19}).addTo(map); L.rectangle(BOUNDS,{color:'#d4572a',weight:2,fillColor:'#d4572a',fillOpacity:0.03,dashArray:'7 4'}).addTo(map); renderMarkers();
+async function updateMural(mural){
+ try{
+ var url = API_BASE + "/" + mural._id + "?dataCollectionId=" + COLLECTION;
+ var body = {
+ dataItem: {
+ id: mural._id,
+ data: {
+ title: mural.title,
+ address: mural.address,
+ lat: mural.lat,
+ lng: mural.lng,
+ artist: mural.artist,
+ bio: mural.bio,
+ website: mural.website,
+ year: mural.year,
+ desc: mural.desc,
+ img: mural.img || "",
+ artistImg: mural.artistImg || "",
+ featured: mural.featured || false
+ }
+ }
+ };
+ var resp = await fetch(url, {
+ method: "PUT",
+ headers: wixHeaders(),
+ body: JSON.stringify(body)
+ });
+ var data = await resp.json();
+ return data.dataItem ? itemToMural(data.dataItem) : null;
+ } catch(e){
+ console.error("Update error:", e);
+ return null;
+ }
 }
-function renderMarkers(){ Object.values(markers).forEach(m=>m.remove()); markers = {}; murals.forEach(m=>{ const mk = L.marker([m.lat,m.lng],{icon:makePin(m)}).addTo(map); mk.on('click',()=>selectMural(m.id)); markers[m.id] = mk; });
+async function deleteMural(id){
+ try{
+ var url = API_BASE + "/" + id + "?dataCollectionId=" + COLLECTION;
+ await fetch(url, { method: "DELETE", headers: wixHeaders() });
+ return true;
+ } catch(e){
+ console.error("Delete error:", e);
+ return false;
+ }
 }
-function renderList(f=''){ const fl = f.toLowerCase(); const filt = murals.filter(m=> m.title.toLowerCase().includes(fl)|| m.artist.toLowerCase().includes(fl)|| m.address.toLowerCase().includes(fl) ); document.getElementById('mural-list').innerHTML = filt.map(m=>` <div class="mural-item${selId===m.id?' active':''}" data-id="${m.id}"> <div class="mural-row"> <div class="mural-thumb">${m.img?`<img src="${m.img}" alt="${m.title}"/>`:`<span style="color:#d4572a;font-weight:800;font-size:15px">${(m.title||'?')[0]}</span>`}</div> <div class="mural-info"> <div class="mural-name">${m.title}${m.featured?' ⭐':''}</div> <div class="mural-addr">📍 ${m.address}</div> <div class="mural-artist">${m.artist}</div> </div> <div class="stamp${m.visited?' visited':''}" data-pid="${m.id}" role="button" aria-label="${m.visited?'Visited':'Mark visited'}">${m.visited?'✓':''}</div> </div> </div>`).join(''); document.querySelectorAll('.mural-item').forEach(el=> el.addEventListener('click',e=>{if(e.target.closest('.stamp'))return; selectMural(parseInt(el.dataset.id));}) ); document.querySelectorAll('.stamp[data-pid]').forEach(el=> el.addEventListener('click',e=>{e.stopPropagation(); toggleVisited(parseInt(el.dataset.pid));}) ); updatePassport();
+function applyTexts(){
+ document.getElementById("hdr-title").textContent = texts.title;
+ document.getElementById("hdr-sub1").textContent = texts.sub1;
+ document.getElementById("hdr-sub2").textContent = texts.sub2;
+ document.getElementById("hdr-badge").textContent = texts.badge;
+ document.getElementById("pp-title").textContent = texts.ppTitle;
+ if(admin){
+ ["title","sub1","sub2","badge"].forEach(function(k){
+ var el = document.getElementById("et-" + k); if(el) el.value = texts[k];
+ var mel = document.getElementById("m-et-" + k); if(mel) mel.value = texts[k];
+ });
+ document.getElementById("et-pp").value = texts.ppTitle;
+ document.getElementById("m-et-pp").value = texts.ppTitle;
+ }
 }
-function updatePassport(){ const v = murals.filter(m=>m.visited).length, t = murals.length; document.getElementById('pp-fill').style.width = t?((v/t)*100)+'%':'0%'; document.getElementById('pp-count').textContent = v+' / '+t+' found';
+function getImgSrc(img){
+ if(!img) return "";
+ if(typeof img === "string") return img;
+ if(img.src) return img.src;
+ return "";
 }
-function toggleVisited(id){ const m = murals.find(m=>m.id===id); if(m){ m.visited=!m.visited; save(); renderList(document.getElementById('search').value); renderMarkers(); }
+function makePin(m){
+ var id = m._id || m.id;
+ var c = isVisited(id) ? "#1e6e68" : "#d4572a";
+ var img = getImgSrc(m.img);
+ var inner = img
+ ? '<img src="' + img + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>'
+ : '<span style="font-size:13px;color:' + c + ';font-weight:800">' + (m.title || "?")[0] + "</span>";
+ var h = '<div style="width:50px;height:62px;display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 3px 10px rgba(0,0,0,.6))">'
+ + '<div style="width:44px;height:44px;border-radius:50%;border:3px solid ' + c + ';overflow:hidden;background:#f0ece8;display:flex;align-items:center;justify-content:center;">' + inner + "</div>"
+ + '<div style="width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:14px solid ' + c + ';margin-top:-1px"></div>'
+ + "</div>";
+ return L.divIcon({html: h, iconSize:[50,62], iconAnchor:[25,62], className:""});
 }
-function buildDetail(m, isMobile){ const ini = m.artist.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); const av = m.artistImg?`<img src="${m.artistImg}" alt="${m.artist}"/>`:`<span>${ini}</span>`; const gridClass = isMobile ? 'sheet-detail-grid' : 'detail-grid'; const cols = isMobile ? '1fr' : '1fr 1fr'; return ` <div style="display:grid;grid-template-columns:${cols};gap:13px"> <div> <div style="width:100%;height:118px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center"> ${m.img?`<img src="${m.img}" alt="${m.title}" style="width:100%;height:100%;object-fit:cover"/>`:`<span style="font-size:36px;color:#d4572a;font-weight:800">${(m.title||'?')[0]}</span>`} </div> <div style="margin-top:9px"> <h2 style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--cream)">${m.title}</h2> <p style="font-size:10px;color:rgba(245,237,227,.4);margin-top:3px">📍 ${m.address}</p> <span class="tag-yr">${m.year}</span> <p style="font-size:11px;color:rgba(245,237,227,.72);margin-top:7px;line-height:1.55">${m.desc}</p> </div> <div style="display:flex;gap:6px;margin-top:9px;flex-wrap:wrap"> <button class="abtn dir" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination='+this.dataset.lat+','+this.dataset.lng+'&travelmode=walking','_blank')" data-lat="${m.lat}" data-lng="${m.lng}">🧭 Directions</button> ${admin?`<button class="abtn edit" data-edit="${m.id}">✏️ Edit</button>`:''} ${admin?`<button class="abtn" data-qr="${m.id}">⬛ QR</button>`:''} ${admin?`<button class="btn-danger" data-del="${m.id}">🗑</button>`:''} </div> </div> <div> <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:10px"> <p style="font-size:10px;font-weight:700;color:rgba(245,237,227,.35);margin-bottom:8px;text-transform:uppercase;letter-spacing:.07em">About the Artist</p> <div style="display:flex;gap:10px;align-items:flex-start"> <div class="av">${av}</div> <div style="flex:1;min-width:0"> <p style="font-size:13px;font-weight:700;color:var(--cream)">${m.artist}</p> <p style="font-size:11px;color:rgba(245,237,227,.58);line-height:1.5;margin-top:3px">${m.bio}</p> ${m.website?`<button class="abtn" style="font-size:11px;color:#e8784d;background:transparent;border:none;padding:0;margin-top:5px;display:inline-flex;align-items:center;gap:3px;cursor:pointer;text-decoration:underline" onclick="window.open('${m.website}','_blank')">🔗 Artist website</button>`:''} </div> </div> </div> <div style="margin-top:10px;padding:9px 11px;background:rgba(30,110,104,.14);border-radius:8px;border:1px solid rgba(30,110,104,.28)"> <p style="font-size:10px;font-weight:700;color:rgba(245,237,227,.38);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em">🗺️ Your Passport</p> <div style="display:flex;align-items:center;gap:10px"> <div class="stamp${m.visited?' visited':''}" data-pp="${m.id}" style="width:30px;height:30px;cursor:pointer;font-size:14px;min-width:30px">${m.visited?'✓':''}</div> <span style="font-size:11px;color:rgba(245,237,227,.52)">${m.visited?'✅ Stamped! Mural collected!':'Tap to stamp your passport'}</span> </div> </div> </div> </div>`;
+function initMap(){
+ map = L.map("map", {center:[29.3005,-94.7978], zoom:16, minZoom:15, maxZoom:18, maxBounds:BOUNDS, maxBoundsViscosity:1.0});
+ L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {attribution:"© OpenStreetMap © CARTO", maxZoom:19}).addTo(map);
+ L.rectangle(BOUNDS, {color:"#d4572a", weight:2, fillColor:"#d4572a", fillOpacity:0.03, dashArray:"7 4"}).addTo(map);
+ setTimeout(function(){ if(map) map.invalidateSize(); }, 500);
+ setTimeout(function(){ if(map) map.invalidateSize(); }, 1500);
 }
-function attachDetailEvents(container, m){ container.querySelectorAll('[data-edit]').forEach(btn=>btn.addEventListener('click',()=>openEdit(m.id))); container.querySelectorAll('[data-qr]').forEach(btn=>btn.addEventListener('click',()=>showQR(m))); container.querySelectorAll('[data-del]').forEach(btn=>btn.addEventListener('click',()=>delMural(m.id))); container.querySelectorAll('[data-pp]').forEach(btn=>btn.addEventListener('click',()=>{toggleVisited(m.id); selectMural(m.id);}));
+function renderMarkers(){
+ Object.values(markers).forEach(function(m){ m.remove(); }); markers = {};
+ murals.forEach(function(m){
+ var id = m._id || m.id;
+ var mk = L.marker([m.lat, m.lng], {icon: makePin(m)}).addTo(map);
+ mk.on("click", function(){ selectMural(id); });
+ markers[id] = mk;
+ });
 }
-function selectMural(id){ selId = id; const m = murals.find(m=>m.id===id); if(!m) return; map.setView([m.lat,m.lng],17); document.getElementById('feat-ribbon').style.display = m.featured?'block':'none'; if(IS_MOBILE()){ const inner = document.getElementById('detail-inner-mobile'); inner.innerHTML = buildDetail(m, true); attachDetailEvents(inner, m); document.getElementById('sheet').classList.add('show'); document.getElementById('sheet-overlay').classList.add('show'); } else { const panel = document.getElementById('detail-desktop'); const inner = document.getElementById('detail-inner-desktop'); inner.innerHTML = buildDetail(m, false); attachDetailEvents(inner, m); panel.classList.add('show'); } renderList(document.getElementById('search').value);
+function renderList(f){
+ f = f || "";
+ var fl = f.toLowerCase();
+ var filt = murals.filter(function(m){
+ return (m.title||"").toLowerCase().includes(fl) || (m.artist||"").toLowerCase().includes(fl) || (m.address||"").toLowerCase().includes(fl);
+ });
+ var html = "";
+ filt.forEach(function(m){
+ var id = m._id || m.id;
+ var img = getImgSrc(m.img);
+ var vis = isVisited(id);
+ var active = selId === id ? " active" : "";
+ var thumb = img
+ ? '<img src="' + img + '" alt="' + m.title + '"/>'
+ : '<span style="color:#d4572a;font-weight:800;font-size:15px">' + (m.title||"?")[0] + "</span>";
+ html += '<div class="mural-item' + active + '" data-id="' + id + '">'
+ + '<div class="mural-row">'
+ + '<div class="mural-thumb">' + thumb + "</div>"
+ + '<div class="mural-info">'
+ + '<div class="mural-name">' + (m.title||"") + (m.featured ? " &#11088;" : "") + "</div>"
+ + '<div class="mural-addr">&#128205; ' + (m.address||"") + "</div>"
+ + '<div class="mural-artist">' + (m.artist||"") + "</div>"
+ + "</div>"
+ + '<div class="stamp' + (vis ? " visited" : "") + '" data-pid="' + id + '">' + (vis ? "&#10003;" : "") + "</div>"
+ + "</div></div>";
+ });
+ document.getElementById("mural-list").innerHTML = html || '<p style="padding:16px;color:rgba(245,237,227,.4);font-size:12px">No murals yet. Log into admin to add your first mural!</p>';
+ document.querySelectorAll(".mural-item").forEach(function(el){
+ el.addEventListener("click", function(e){ if(e.target.closest(".stamp")) return; selectMural(el.dataset.id); });
+ });
+ document.querySelectorAll(".stamp[data-pid]").forEach(function(el){
+ el.addEventListener("click", function(e){ e.stopPropagation(); toggleVisited(el.dataset.pid); });
+ });
+ updatePassport();
 }
-function closeDetail(){ document.getElementById('detail-desktop').classList.remove('show'); document.getElementById('sheet').classList.remove('show'); document.getElementById('sheet-overlay').classList.remove('show'); selId = null; renderList(document.getElementById('search').value);
+function updatePassport(){
+ var visited = getVisited();
+ var v = murals.filter(function(m){ return visited[m._id||m.id]; }).length;
+ var t = murals.length;
+ document.getElementById("pp-fill").style.width = t ? ((v/t)*100) + "%" : "0%";
+ document.getElementById("pp-count").textContent = v + " / " + t + " found";
 }
-function openEdit(id){ const m = murals.find(m=>m.id===id); if(!m) return; eMural=null; eArtist=null; document.getElementById('em-id').value = id; ['title','address','lat','lng','year','desc','artist','bio','website'].forEach(k=>document.getElementById('em-'+k).value=m[k]||''); ['em-prev-mural','em-prev-artist'].forEach(i=>{const el=document.getElementById(i);el.style.display='none';el.src='';}); ['em-lbl-mural','em-lbl-artist'].forEach(i=>document.getElementById(i).style.display='block'); document.getElementById('em-img').value=''; document.getElementById('em-artist-img').value=''; document.getElementById('edit-modal').classList.add('show');
+function toggleVisited(id){
+ setVisited(id, !isVisited(id));
+ renderList(document.getElementById("search").value);
+ renderMarkers();
+ if(selId === id) selectMural(id);
 }
-document.getElementById('em-img').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;compress(f,d=>{eMural=d;showPrev('em-prev-mural',d);hide('em-lbl-mural');});});
-document.getElementById('em-artist-img').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;compress(f,d=>{eArtist=d;showPrev('em-prev-artist',d);hide('em-lbl-artist');});});
-document.getElementById('em-save').addEventListener('click',()=>{ const id = parseInt(document.getElementById('em-id').value); const idx = murals.findIndex(m=>m.id===id); if(idx<0) return; ['title','address','year','desc','artist','bio','website'].forEach(k=>murals[idx][k]=document.getElementById('em-'+k).value); const lat = parseFloat(document.getElementById('em-lat').value); const lng = parseFloat(document.getElementById('em-lng').value); if(!isNaN(lat)) murals[idx].lat=lat; if(!isNaN(lng)) murals[idx].lng=lng; if(eMural) murals[idx].img=eMural; if(eArtist) murals[idx].artistImg=eArtist; save(); document.getElementById('edit-modal').classList.remove('show'); renderList(document.getElementById('search').value); renderMarkers(); selectMural(id);
+function buildDetail(m, isMobile){
+ var id = m._id || m.id;
+ var ini = ((m.artist||"?").split(" ").map(function(w){ return w[0]; }).join("").slice(0,2)||"?").toUpperCase();
+ var aImg = getImgSrc(m.artistImg);
+ var mImg = getImgSrc(m.img);
+ var vis = isVisited(id);
+ var cols = isMobile ? "1fr" : "1fr 1fr";
+ var muralImg = mImg
+ ? '<img src="' + mImg + '" alt="' + m.title + '" style="width:100%;height:100%;object-fit:cover"/>'
+ : '<span style="font-size:36px;color:#d4572a;font-weight:800">' + (m.title||"?")[0] + "</span>";
+ var artistImg = aImg ? '<img src="' + aImg + '" alt="' + m.artist + '"/>' : "<span>" + ini + "</span>";
+ var websiteBtn = m.website
+ ? '<button class="abtn" style="font-size:11px;color:#e8784d;background:transparent;border:none;padding:0;margin-top:5px;cursor:pointer;text-decoration:underline" onclick="window.open('' + m.website + '','_blank')">Artist website</button>'
+ : "";
+ var editBtns = admin
+ ? '<button class="abtn edit" data-edit="' + id + '">Edit</button>'
+ + '<button class="abtn" data-qr="' + id + '">QR</button>'
+ + '<button class="btn-danger" data-del="' + id + '">Remove</button>'
+ : "";
+ var passportStamp = '<div class="stamp' + (vis ? " visited" : "") + '" data-pp="' + id + '" style="width:30px;height:30px;cursor:pointer;font-size:14px;min-width:30px">' + (vis ? "&#10003;" : "") + "</div>";
+ return '<div style="display:grid;grid-template-columns:' + cols + ';gap:13px">'
+ + "<div>"
+ + '<div style="width:100%;height:118px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center">' + muralImg + "</div>"
+ + '<div style="margin-top:9px">'
+ + '<h2 style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--cream)">' + (m.title||"") + "</h2>"
+ + '<p style="font-size:10px;color:rgba(245,237,227,.4);margin-top:3px">' + (m.address||"") + "</p>"
+ + '<span class="tag-yr">' + (m.year||"") + "</span>"
+ + '<p style="font-size:11px;color:rgba(245,237,227,.72);margin-top:7px;line-height:1.55">' + (m.desc||"") + "</p>"
+ + "</div>"
+ + '<div style="display:flex;gap:6px;margin-top:9px;flex-wrap:wrap">'
+ + '<button class="abtn dir" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=' + m.lat + "," + m.lng + '&travelmode=walking','_blank','noopener,noreferrer')">Directions</button>'
+ + editBtns
+ + "</div></div>"
+ + "<div>"
+ + '<div style="border-top:1px solid rgba(255,255,255,.08);padding-top:10px">'
+ + '<p style="font-size:10px;font-weight:700;color:rgba(245,237,227,.35);margin-bottom:8px;text-transform:uppercase;letter-spacing:.07em">About the Artist</p>'
+ + '<div style="display:flex;gap:10px;align-items:flex-start">'
+ + '<div class="av">' + artistImg + "</div>"
+ + '<div style="flex:1;min-width:0">'
+ + '<p style="font-size:13px;font-weight:700;color:var(--cream)">' + (m.artist||"") + "</p>"
+ + '<p style="font-size:11px;color:rgba(245,237,227,.58);line-height:1.5;margin-top:3px">' + (m.bio||"") + "</p>"
+ + websiteBtn
+ + "</div></div></div>"
+ + '<div style="margin-top:10px;padding:9px 11px;background:rgba(30,110,104,.14);border-radius:8px;border:1px solid rgba(30,110,104,.28)">'
+ + '<p style="font-size:10px;font-weight:700;color:rgba(245,237,227,.38);margin-bottom:6px;text-transform:uppercase">Your Passport</p>'
+ + '<div style="display:flex;align-items:center;gap:10px">'
+ + passportStamp
+ + '<span style="font-size:11px;color:rgba(245,237,227,.52)">' + (vis ? "Stamped! Mural collected!" : "Tap to stamp your passport") + "</span>"
+ + "</div></div></div></div>";
+}
+function attachDetailEvents(container, m){
+ var id = m._id || m.id;
+ container.querySelectorAll("[data-edit]").forEach(function(btn){ btn.addEventListener("click", function(){ openEdit(id); }); });
+ container.querySelectorAll("[data-qr]").forEach(function(btn){ btn.addEventListener("click", function(){ showQR(m); }); });
+ container.querySelectorAll("[data-del]").forEach(function(btn){ btn.addEventListener("click", function(){ doDeleteMural(id); }); });
+ container.querySelectorAll("[data-pp]").forEach(function(btn){ btn.addEventListener("click", function(){ toggleVisited(id); }); });
+}
+function selectMural(id){
+ selId = id;
+ var m = murals.find(function(m){ return (m._id||m.id) === id; });
+ if(!m) return;
+ map.setView([m.lat, m.lng], 17);
+ document.getElementById("feat-ribbon").style.display = m.featured ? "block" : "none";
+ if(IS_MOBILE()){
+ var inner = document.getElementById("detail-inner-mobile");
+ inner.innerHTML = buildDetail(m, true);
+ attachDetailEvents(inner, m);
+ document.getElementById("sheet").classList.add("show");
+ document.getElementById("sheet-overlay").classList.add("show");
+ } else {
+ var inner2 = document.getElementById("detail-inner-desktop");
+ inner2.innerHTML = buildDetail(m, false);
+ attachDetailEvents(inner2, m);
+ document.getElementById("detail-desktop").classList.add("show");
+ }
+ renderList(document.getElementById("search").value);
+}
+function closeDetail(){
+ document.getElementById("detail-desktop").classList.remove("show");
+ document.getElementById("sheet").classList.remove("show");
+ document.getElementById("sheet-overlay").classList.remove("show");
+ selId = null;
+ renderList(document.getElementById("search").value);
+}
+function openEdit(id){
+ var m = murals.find(function(m){ return (m._id||m.id) === id; });
+ if(!m) return;
+ eMural = null; eArtist = null;
+ document.getElementById("em-id").value = id;
+ document.getElementById("em-title").value = m.title || "";
+ document.getElementById("em-address").value = m.address || "";
+ document.getElementById("em-lat").value = m.lat || "";
+ document.getElementById("em-lng").value = m.lng || "";
+ document.getElementById("em-year").value = m.year || "";
+ document.getElementById("em-desc").value = m.desc || "";
+ document.getElementById("em-artist").value = m.artist || "";
+ document.getElementById("em-bio").value = m.bio || "";
+ document.getElementById("em-website").value = m.website || "";
+ ["em-prev-mural","em-prev-artist"].forEach(function(i){ var el = document.getElementById(i); el.style.display = "none"; el.src = ""; });
+ ["em-lbl-mural","em-lbl-artist"].forEach(function(i){ document.getElementById(i).style.display = "block"; });
+ document.getElementById("em-img").value = "";
+ document.getElementById("em-artist-img").value = "";
+ document.getElementById("edit-modal").classList.add("show");
+}
+document.getElementById("em-img").addEventListener("change", function(e){ var f = e.target.files[0]; if(!f) return; compress(f, function(d){ eMural = d; showPrev("em-prev-mural", d); hide("em-lbl-mural"); }); });
+document.getElementById("em-artist-img").addEventListener("change", function(e){ var f = e.target.files[0]; if(!f) return; compress(f, function(d){ eArtist = d; showPrev("em-prev-artist", d); hide("em-lbl-artist"); }); });
+document.getElementById("em-save").addEventListener("click", async function(){
+ var id = document.getElementById("em-id").value;
+ var idx = murals.findIndex(function(m){ return (m._id||m.id) === id; });
+ if(idx < 0) return;
+ murals[idx].title = document.getElementById("em-title").value;
+ murals[idx].address = document.getElementById("em-address").value;
+ murals[idx].year = document.getElementById("em-year").value;
+ murals[idx].desc = document.getElementById("em-desc").value;
+ murals[idx].artist = document.getElementById("em-artist").value;
+ murals[idx].bio = document.getElementById("em-bio").value;
+ murals[idx].website = document.getElementById("em-website").value;
+ var lat = parseFloat(document.getElementById("em-lat").value);
+ var lng = parseFloat(document.getElementById("em-lng").value);
+ if(!isNaN(lat)) murals[idx].lat = lat;
+ if(!isNaN(lng)) murals[idx].lng = lng;
+ if(eMural) murals[idx].img = eMural;
+ if(eArtist) murals[idx].artistImg = eArtist;
+ document.getElementById("edit-modal").classList.remove("show");
+ showLoading("Saving...");
+ var result = await updateMural(murals[idx]);
+ hideLoading();
+ if(result){
+ murals[idx] = result;
+ renderList(document.getElementById("search").value);
+ renderMarkers();
+ selectMural(id);
+ alert("Saved!");
+ } else {
+ alert("Could not save. Please try again.");
+ }
 });
-document.getElementById('em-cancel').addEventListener('click',()=>document.getElementById('edit-modal').classList.remove('show'));
-document.getElementById('edit-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('show');});
-function showQR(m){ document.getElementById('qr-canvas').innerHTML=''; document.getElementById('qr-title').textContent=m.title; document.getElementById('qr-sub').textContent=m.artist+' · '+m.address; new QRCode(document.getElementById('qr-canvas'),{text:BASE_URL+'?mural='+m.id,width:180,height:180,colorDark:'#1a1a1a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H}); document.getElementById('qr-modal').classList.add('show'); document.getElementById('qr-dl').onclick=()=>{const c=document.querySelector('#qr-canvas canvas');if(c){const a=document.createElement('a');a.download=m.title.replace(/\s+/g,'_')+'_QR.png';a.href=c.toDataURL();a.click();}};
+document.getElementById("em-cancel").addEventListener("click", function(){ document.getElementById("edit-modal").classList.remove("show"); });
+document.getElementById("edit-modal").addEventListener("click", function(e){ if(e.target === e.currentTarget) e.currentTarget.classList.remove("show"); });
+function showQR(m){
+ document.getElementById("qr-canvas").innerHTML = "";
+ document.getElementById("qr-title").textContent = m.title;
+ document.getElementById("qr-sub").textContent = (m.artist||"") + " - " + (m.address||"");
+ new QRCode(document.getElementById("qr-canvas"), {text: BASE_URL + "?mural=" + (m._id||m.id), width:180, height:180, colorDark:"#1a1a1a", colorLight:"#ffffff", correctLevel:QRCode.CorrectLevel.H});
+ document.getElementById("qr-modal").classList.add("show");
+ document.getElementById("qr-dl").onclick = function(){
+ var c = document.querySelector("#qr-canvas canvas");
+ if(c){ var a = document.createElement("a"); a.download = (m.title||"mural").replace(/s+/g,"_") + "_QR.png"; a.href = c.toDataURL(); a.click(); }
+ };
 }
-function delMural(id){ if(!confirm('Remove this mural from the map?')) return; murals=murals.filter(m=>m.id!==id); save(); closeDetail(); renderList(); renderMarkers();
+async function doDeleteMural(id){
+ if(!confirm("Remove this mural?")) return;
+ showLoading("Removing...");
+ var ok = await deleteMural(id);
+ hideLoading();
+ if(ok){
+ murals = murals.filter(function(m){ return (m._id||m.id) !== id; });
+ closeDetail();
+ renderList();
+ renderMarkers();
+ } else {
+ alert("Could not remove. Please try again.");
+ }
 }
-function doAddMural(prefix, muralImg, artistImg){ const title = document.getElementById(prefix+'f-title').value.trim(); const lat = parseFloat(document.getElementById(prefix+'f-lat').value); const lng = parseFloat(document.getElementById(prefix+'f-lng').value); if(!title||isNaN(lat)||isNaN(lng)){ alert('Title, latitude, and longitude are required.'); return false; } murals.push({ id:Date.now(), title, address : document.getElementById(prefix+'f-address').value||'', lat, lng, artist : document.getElementById(prefix+'f-artist').value||'Unknown', bio : document.getElementById(prefix+'f-bio').value||'', website : document.getElementById(prefix+'f-website').value||'', year : document.getElementById(prefix+'f-year').value||new Date().getFullYear(), desc : document.getElementById(prefix+'f-desc').value||'', img : muralImg, artistImg, featured:false, visited:false }); save(); renderList(); renderMarkers(); [prefix+'f-title',prefix+'f-address',prefix+'f-lat',prefix+'f-lng', prefix+'f-artist',prefix+'f-bio',prefix+'f-website',prefix+'f-year',prefix+'f-desc'].forEach(i=>{ const el=document.getElementById(i); if(el) el.value=''; }); return true;
+async function doAddMural(prefix, muralImg, artistImg){
+ var title = document.getElementById(prefix + "f-title").value.trim();
+ var lat = parseFloat(document.getElementById(prefix + "f-lat").value);
+ var lng = parseFloat(document.getElementById(prefix + "f-lng").value);
+ if(!title || isNaN(lat) || isNaN(lng)){ alert("Title, latitude, and longitude are required."); return false; }
+ var newMural = {
+ title: title, lat: lat, lng: lng,
+ address: document.getElementById(prefix + "f-address").value || "",
+ artist: document.getElementById(prefix + "f-artist").value || "Unknown",
+ bio: document.getElementById(prefix + "f-bio").value || "",
+ website: document.getElementById(prefix + "f-website").value || "",
+ year: document.getElementById(prefix + "f-year").value || String(new Date().getFullYear()),
+ desc: document.getElementById(prefix + "f-desc").value || "",
+ img: muralImg || "", artistImg: artistImg || "", featured: false
+ };
+ showLoading("Saving...");
+ var result = await saveMural(newMural);
+ hideLoading();
+ if(result){
+ murals.push(result);
+ renderList(); renderMarkers();
+ alert("Mural saved!");
+ return true;
+ } else {
+ alert("Could not save. Please check your connection and try again.");
+ return false;
+ }
 }
-function compress(file,cb){ const r=new FileReader(); r.onload=e=>{ const i=new Image(); i.onload=()=>{ const c=document.createElement('canvas'); const M=800; let w=i.width,h=i.height; if(w>M){h=Math.round(h*(M/w));w=M;} if(h>M){w=Math.round(w*(M/h));h=M;} c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h); cb(c.toDataURL('image/jpeg',0.75)); }; i.src=e.target.result; }; r.readAsDataURL(file);
+function compress(file, cb){
+ var r = new FileReader();
+ r.onload = function(e){
+ var i = new Image();
+ i.onload = function(){
+ var c = document.createElement("canvas");
+ var M = 600; var w = i.width, h = i.height;
+ if(w > M){ h = Math.round(h*(M/w)); w = M; }
+ if(h > M){ w = Math.round(w*(M/h)); h = M; }
+ c.width = w; c.height = h; c.getContext("2d").drawImage(i,0,0,w,h);
+ cb(c.toDataURL("image/jpeg", 0.65));
+ };
+ i.src = e.target.result;
+ };
+ r.readAsDataURL(file);
 }
-function showPrev(id,src){const el=document.getElementById(id);el.src=src;el.style.display='block';}
-function hide(id){document.getElementById(id).style.display='none';}
-function setupUpload(fid,pid,lid,cb){ document.getElementById(fid).addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;compress(f,d=>{cb(d);showPrev(pid,d);hide(lid);});}); }
-setupUpload('f-img', 'prev-mural', 'lbl-mural', d=>pMural=d);
-setupUpload('f-artist-img', 'prev-artist', 'lbl-artist', d=>pArtist=d);
-setupUpload('m-f-img', 'm-prev-mural', 'm-lbl-mural', d=>mPMural=d);
-setupUpload('m-f-artist-img', 'm-prev-artist', 'm-lbl-artist', d=>mPArtist=d);
-document.getElementById('add-btn').addEventListener('click',()=>{ if(doAddMural('',pMural,pArtist)){ pMural='';pArtist=''; ['prev-mural','prev-artist'].forEach(i=>{const el=document.getElementById(i);el.style.display='none';el.src='';}); ['lbl-mural','lbl-artist'].forEach(i=>document.getElementById(i).style.display='block'); document.getElementById('f-img').value='';document.getElementById('f-artist-img').value=''; alert('Mural added!'); }
+function showPrev(id, src){ var el = document.getElementById(id); el.src = src; el.style.display = "block"; }
+function hide(id){ document.getElementById(id).style.display = "none"; }
+function setupUpload(fid, pid, lid, cb){
+ document.getElementById(fid).addEventListener("change", function(e){
+ var f = e.target.files[0]; if(!f) return;
+ compress(f, function(d){ cb(d); showPrev(pid, d); hide(lid); });
+ });
+}
+setupUpload("f-img", "prev-mural", "lbl-mural", function(d){ pMural = d; });
+setupUpload("f-artist-img", "prev-artist", "lbl-artist", function(d){ pArtist = d; });
+setupUpload("m-f-img", "m-prev-mural", "m-lbl-mural", function(d){ mPMural = d; });
+setupUpload("m-f-artist-img", "m-prev-artist", "m-lbl-artist", function(d){ mPArtist = d; });
+document.getElementById("add-btn").addEventListener("click", async function(){
+ if(await doAddMural("", pMural, pArtist)){
+ pMural = ""; pArtist = "";
+ ["prev-mural","prev-artist"].forEach(function(i){ var el = document.getElementById(i); el.style.display = "none"; el.src = ""; });
+ ["lbl-mural","lbl-artist"].forEach(function(i){ document.getElementById(i).style.display = "block"; });
+ document.getElementById("f-img").value = ""; document.getElementById("f-artist-img").value = "";
+ }
 });
-document.getElementById('m-add-btn').addEventListener('click',()=>{ if(doAddMural('m-',mPMural,mPArtist)){ mPMural='';mPArtist=''; ['m-prev-mural','m-prev-artist'].forEach(i=>{const el=document.getElementById(i);el.style.display='none';el.src='';}); ['m-lbl-mural','m-lbl-artist'].forEach(i=>document.getElementById(i).style.display='block'); document.getElementById('m-f-img').value='';document.getElementById('m-f-artist-img').value=''; alert('Mural added! Close the admin panel to see it on the map.'); }
+document.getElementById("m-add-btn").addEventListener("click", async function(){
+ if(await doAddMural("m-", mPMural, mPArtist)){
+ mPMural = ""; mPArtist = "";
+ ["m-prev-mural","m-prev-artist"].forEach(function(i){ var el = document.getElementById(i); el.style.display = "none"; el.src = ""; });
+ ["m-lbl-mural","m-lbl-artist"].forEach(function(i){ document.getElementById(i).style.display = "block"; });
+ document.getElementById("m-f-img").value = ""; document.getElementById("m-f-artist-img").value = "";
+ }
 });
-document.getElementById('admin-toggle-btn').addEventListener('click',()=>{ document.getElementById('admin-panel').classList.toggle('show');
+document.getElementById("admin-toggle-btn").addEventListener("click", function(){ document.getElementById("admin-panel").classList.toggle("show"); });
+document.getElementById("admin-login-btn").addEventListener("click", function(){
+ if(document.getElementById("admin-pw").value === ADMIN_PW){
+ admin = true;
+ document.getElementById("admin-auth").style.display = "none";
+ document.getElementById("admin-controls").style.display = "block";
+ document.getElementById("admin-toggle-btn").textContent = "Admin (unlocked)";
+ applyTexts();
+ } else { document.getElementById("auth-err").style.display = "block"; }
 });
-document.getElementById('admin-login-btn').addEventListener('click',()=>{
-  const pw = document.getElementById('admin-pw').value;
-  if(pw === ADMIN_PW){
-    admin=true;
-    document.getElementById('admin-auth').style.display='none';
-    document.getElementById('admin-controls').style.display='block';
-    document.getElementById('admin-toggle-btn').textContent='🔓 Admin (unlocked)';
-    applyTexts();
-  } else {
-    document.getElementById('auth-err').style.display='block';
-  }
+document.getElementById("save-text-btn").addEventListener("click", function(){
+ texts.title = document.getElementById("et-title").value;
+ texts.sub1 = document.getElementById("et-sub1").value;
+ texts.sub2 = document.getElementById("et-sub2").value;
+ texts.badge = document.getElementById("et-badge").value;
+ texts.ppTitle = document.getElementById("et-pp").value;
+ saveTxt(); applyTexts(); alert("Text saved!");
 });
-document.getElementById('save-text-btn').addEventListener('click',()=>{ texts.title = document.getElementById('et-title').value; texts.sub1 = document.getElementById('et-sub1').value; texts.sub2 = document.getElementById('et-sub2').value; texts.badge = document.getElementById('et-badge').value; texts.ppTitle = document.getElementById('et-pp').value; saveTxt(); applyTexts(); alert('Text saved!');
+document.getElementById("mobile-admin-fab").addEventListener("click", function(){ document.getElementById("admin-fs").classList.add("show"); });
+document.getElementById("admin-fs-close").addEventListener("click", function(){ document.getElementById("admin-fs").classList.remove("show"); });
+document.getElementById("m-admin-login-btn").addEventListener("click", function(){
+ if(document.getElementById("m-admin-pw").value === ADMIN_PW){
+ admin = true;
+ document.getElementById("m-admin-auth").style.display = "none";
+ document.getElementById("m-admin-controls").style.display = "block";
+ document.getElementById("mobile-admin-fab").textContent = "Unlocked";
+ applyTexts();
+ } else { document.getElementById("m-auth-err").style.display = "block"; }
 });
-document.getElementById('mobile-admin-fab').addEventListener('click',()=>{ document.getElementById('admin-fs').classList.add('show');
+document.getElementById("m-save-text-btn").addEventListener("click", function(){
+ texts.title = document.getElementById("m-et-title").value;
+ texts.sub1 = document.getElementById("m-et-sub1").value;
+ texts.sub2 = document.getElementById("m-et-sub2").value;
+ texts.badge = document.getElementById("m-et-badge").value;
+ texts.ppTitle = document.getElementById("m-et-pp").value;
+ saveTxt(); applyTexts(); alert("Text saved!");
 });
-document.getElementById('admin-fs-close').addEventListener('click',()=>{ document.getElementById('admin-fs').classList.remove('show');
-});
-document.getElementById('m-admin-login-btn').addEventListener('click',()=>{
-  const pw = document.getElementById('m-admin-pw').value;
-  if(pw === ADMIN_PW){
-    admin=true;
-    document.getElementById('m-admin-auth').style.display='none';
-    document.getElementById('m-admin-controls').style.display='block';
-    document.getElementById('mobile-admin-fab').textContent='🔓';
-    applyTexts();
-  } else {
-    document.getElementById('m-auth-err').style.display='block';
-  }
-});
-document.getElementById('m-save-text-btn').addEventListener('click',()=>{ texts.title = document.getElementById('m-et-title').value; texts.sub1 = document.getElementById('m-et-sub1').value; texts.sub2 = document.getElementById('m-et-sub2').value; texts.badge = document.getElementById('m-et-badge').value; texts.ppTitle = document.getElementById('m-et-pp').value; saveTxt(); applyTexts(); alert('Text saved!');
-});
-document.getElementById('sheet-overlay').addEventListener('click', closeDetail);
-let touchY = 0;
-document.getElementById('sheet').addEventListener('touchstart',e=>touchY=e.touches[0].clientY,{passive:true});
-document.getElementById('sheet').addEventListener('touchend',e=>{if(e.changedTouches[0].clientY - touchY > 60) closeDetail();},{passive:true});
-document.getElementById('close-desktop').addEventListener('click', closeDetail);
-document.getElementById('qr-close').addEventListener('click',()=>document.getElementById('qr-modal').classList.remove('show'));
-document.getElementById('qr-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('show');});
-document.getElementById('search').addEventListener('input',e=>renderList(e.target.value));
-document.getElementById('pp-toggle').addEventListener('click',()=>document.getElementById('pp-exp').classList.toggle('show'));
-window.addEventListener('load',()=>{ setTimeout(()=>{ murals = loadData('gv_m7', DEF_MURALS); texts = loadData('gv_t7', {...DEF_TEXTS}); initMap(); applyTexts(); renderList(); }, 300);
+document.getElementById("sheet-overlay").addEventListener("click", closeDetail);
+var touchY = 0;
+document.getElementById("sheet").addEventListener("touchstart", function(e){ touchY = e.touches[0].clientY; }, {passive:true});
+document.getElementById("sheet").addEventListener("touchend", function(e){ if(e.changedTouches[0].clientY - touchY > 60) closeDetail(); }, {passive:true});
+document.getElementById("close-desktop").addEventListener("click", closeDetail);
+document.getElementById("qr-close").addEventListener("click", function(){ document.getElementById("qr-modal").classList.remove("show"); });
+document.getElementById("qr-modal").addEventListener("click", function(e){ if(e.target === e.currentTarget) e.currentTarget.classList.remove("show"); });
+document.getElementById("search").addEventListener("input", function(e){ renderList(e.target.value); });
+document.getElementById("pp-toggle").addEventListener("click", function(){ document.getElementById("pp-exp").classList.toggle("show"); });
+window.addEventListener("load", function(){
+ setTimeout(function(){
+ initMap();
+ applyTexts();
+ loadMurals();
+ }, 300);
 });
 </script>
 </body>
