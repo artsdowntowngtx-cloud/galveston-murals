@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Galveston Cultural Arts District — Mural Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+--coral:#d4572a;--coral-light:#e8784d;
+--teal:#0d3d3a;--teal-mid:#1e6e68;
+--cream:#f5ede3;--cream-dim:rgba(245,237,227,.65);
+--gold:#c9a44a;
+--glass:rgba(13,61,58,.92);
+--b-coral:rgba(212,87,42,.28);--b-teal:rgba(30,110,104,.35);
+--radius:10px;
+}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:#071e1c;color:var(--cream);overflow:hidden}
+.bg{position:fixed;inset:0;z-index:0;background:linear-gradient(160deg,#071e1c 0%,#0d3d3a 40%,#0a2820 70%,#14120d 100%);pointer-events:none}
+.bg svg{position:absolute}
+.app{position:relative;z-index:1;display:grid;grid-template-columns:380px 1fr;height:100vh;width:100%}
+.sidebar{background:var(--glass);backdrop-filter:blur(16px);border-right:1px solid var(--b-coral);display:flex;flex-direction:column;height:100vh;overflow:hidden;min-width:0}
+.sidebar-header{padding:11px 14px;border-bottom:1px solid var(--b-coral);background:linear-gradient(180deg,rgba(212,87,42,.14) 0%,transparent 100%);flex-shrink:0}
+.sidebar-header h1{font-family:'Playfair Display',serif;font-size:12px;font-weight:700;color:var(--cream);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub1{font-size:10.5px;font-weight:600;color:var(--coral-light);margin-top:3px}
+.sub2{font-size:10px;color:var(--cream-dim);margin-top:2px;letter-spacing:0}
+.badge{display:inline-flex;align-items:center;gap:4px;background:rgba(212,87,42,.18);color:var(--coral-light);font-size:10px;padding:3px 9px;border-radius:20px;margin-top:7px;font-weight:600;border:1px solid rgba(212,87,42,.32)}
+.passport-bar{padding:9px 16px;background:rgba(30,110,104,.18);border-bottom:1px solid var(--b-teal);cursor:pointer;flex-shrink:0;user-select:none}
+.passport-top{display:flex;align-items:center;justify-content:space-between}
+.plabel{font-size:11px;color:#7dd4cc;font-weight:600}
+.pprog{height:4px;background:rgba(255,255,255,.1);border-radius:3px;margin:5px 0 2px}
+.pfill{height:100%;background:linear-gradient(90deg,var(--teal-mid),#7dd4cc);border-radius:3px;transition:width .5s}
+.pexp{font-size:10px;color:rgba(245,237,227,.5);line-height:1.55;display:none;padding-top:6px;border-top:1px solid rgba(30,110,104,.2);margin-top:4px}
+.pexp.show{display:block}
+.pstep{display:flex;align-items:flex-start;gap:6px;color:rgba(245,237,227,.6);line-height:1.4;margin-top:5px;font-size:10px}
+.pnum{width:16px;height:16px;min-width:16px;border-radius:50%;background:var(--coral);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.search-wrap{padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
+.search-wrap input{width:100%;padding:8px 12px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.06);font-family:inherit;font-size:13px;color:var(--cream)}
+.search-wrap input::placeholder{color:rgba(245,237,227,.28)}
+.search-wrap input:focus{outline:none;border-color:var(--coral)}
+.mural-list{flex:1;overflow-y:auto;padding:6px 0}
+.mural-list::-webkit-scrollbar{width:3px}
+.mural-list::-webkit-scrollbar-thumb{background:rgba(212,87,42,.3);border-radius:2px}
+.mural-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s;user-select:none}
+.mural-item:active{background:rgba(255,255,255,.08)}
+.mural-item.active{background:rgba(212,87,42,.14);border-left:2.5px solid var(--coral);padding-left:11.5px}
+.mural-thumb{width:44px;height:44px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.mural-thumb img{width:100%;height:100%;object-fit:cover}
+.mural-row{display:flex;gap:10px;align-items:center}
+.mural-info{flex:1;min-width:0}
+.mural-name{font-size:12px;font-weight:600;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mural-addr{font-size:10px;color:rgba(245,237,227,.4);margin-top:2px}
+.mural-artist{font-size:10px;color:#7dd4cc;margin-top:2px;font-weight:500}
+.stamp{width:28px;height:28px;border:1.5px solid rgba(255,255,255,.22);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .25s;font-size:13px;min-width:28px}
+.stamp.visited{background:var(--teal-mid);border-color:var(--teal-mid);color:#fff}
+.admin-wrap{padding:9px 14px;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.admin-btn{width:100%;padding:9px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:8px;font-size:12px;cursor:pointer;color:rgba(245,237,227,.45);font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px}
+.admin-panel{display:none;padding:0 14px 12px;max-height:calc(100vh - 280px);overflow-y:auto}
+.admin-panel::-webkit-scrollbar{width:4px}
+.admin-panel::-webkit-scrollbar-thumb{background:rgba(212,87,42,.3);border-radius:2px}
+.admin-panel.show{display:block}
+.aform{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:8px;padding:11px;margin-top:6px}
+.aform input[type=text],.aform input[type=password],.aform textarea{width:100%;padding:8px 10px;border:1px solid rgba(255,255,255,.11);border-radius:7px;background:rgba(255,255,255,.06);font-family:inherit;font-size:12px;color:var(--cream);margin-bottom:5px;resize:none;-webkit-appearance:none}
+.aform input::placeholder,.aform textarea::placeholder{color:rgba(245,237,227,.22)}
+.aform input:focus,.aform textarea:focus{outline:none;border-color:var(--coral)}
+.aform label{font-size:10px;color:rgba(245,237,227,.4);margin-bottom:2px;display:block;letter-spacing:.02em}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.btn-primary{background:linear-gradient(135deg,#d4572a,#b03d15);color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:700;width:100%;margin-top:4px;letter-spacing:.02em}
+.btn-danger{background:rgba(163,45,45,.2);color:#f09595;border:1px solid rgba(163,45,45,.35);border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer;font-family:inherit}
+.btn-sec{background:rgba(255,255,255,.07);color:var(--cream);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer;font-family:inherit}
+.asect{font-size:10px;font-weight:700;color:rgba(245,237,227,.35);text-transform:uppercase;letter-spacing:.09em;margin:12px 0 4px}
+.upbox{width:100%;height:64px;border:1.5px dashed rgba(255,255,255,.14);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;margin-bottom:5px;position:relative;overflow:hidden;background:rgba(255,255,255,.03)}
+.upbox:hover{border-color:var(--coral)}
+.upbox input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upbox span{font-size:10px;color:rgba(245,237,227,.28);pointer-events:none;text-align:center;padding:0 8px}
+.upprev{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.map-area{display:flex;flex-direction:column;height:100vh;overflow:hidden;position:relative}
+.map-container{flex:1;position:relative;min-height:0}
+#map{width:100%;height:100%}
+.legend{position:absolute;bottom:12px;right:12px;background:rgba(7,18,17,.82);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:7px 11px;z-index:500;font-size:10px;color:rgba(245,237,227,.6)}
+.ldot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle}
+.feat-ribbon{position:absolute;top:12px;left:12px;background:rgba(201,164,74,.88);color:#2a1600;font-size:10px;padding:4px 10px;border-radius:10px;font-weight:700;z-index:500;pointer-events:none;display:none}
+.detail-desktop{background:rgba(7,18,17,.95);backdrop-filter:blur(16px);border-top:1px solid var(--b-coral);padding:13px 15px;display:none;max-height:285px;overflow-y:auto;flex-shrink:0}
+.detail-desktop::-webkit-scrollbar{width:3px}
+.detail-desktop::-webkit-scrollbar-thumb{background:rgba(212,87,42,.3);border-radius:2px}
+.detail-desktop.show{display:block}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.tag-yr{display:inline-block;font-size:10px;padding:2px 9px;border-radius:12px;font-weight:600;margin-top:5px;background:rgba(30,110,104,.3);color:#7dd4cc;border:1px solid rgba(30,110,104,.4)}
+.abtn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer;color:var(--cream);font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:5px;text-decoration:none;white-space:nowrap}
+.abtn:active{opacity:.75}
+.abtn.dir{background:rgba(30,110,104,.25);color:#7dd4cc;border-color:rgba(30,110,104,.4)}
+.abtn.edit{background:rgba(201,164,74,.14);color:#e0c06a;border-color:rgba(201,164,74,.3)}
+.close-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:50%;width:26px;height:26px;cursor:pointer;color:var(--cream);font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.av{width:50px;height:50px;border-radius:50%;background:rgba(30,110,104,.3);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#7dd4cc;flex-shrink:0;overflow:hidden;border:2px solid rgba(30,110,104,.5)}
+.av img{width:100%;height:100%;object-fit:cover}
+.sheet-overlay{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.55);display:none;backdrop-filter:blur(3px)}
+.sheet-overlay.show{display:block}
+.sheet{position:fixed;bottom:0;left:0;right:0;z-index:2001;background:#0a2826;border-top:2px solid var(--coral);border-radius:18px 18px 0 0;padding:0 0 env(safe-area-inset-bottom,0);transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+.sheet.show{transform:translateY(0)}
+.sheet-handle{width:40px;height:4px;border-radius:2px;background:rgba(255,255,255,.25);margin:10px auto 0;flex-shrink:0}
+.sheet-scroll{overflow-y:auto;padding:14px 16px 24px;flex:1}
+.sheet-scroll::-webkit-scrollbar{width:0}
+.sheet-detail-grid{display:grid;grid-template-columns:1fr;gap:14px}
+.admin-fs{position:fixed;inset:0;z-index:3000;background:#071e1c;display:none;flex-direction:column;overflow:hidden}
+.admin-fs.show{display:flex}
+.admin-fs-header{padding:14px 16px;background:rgba(212,87,42,.14);border-bottom:1px solid var(--b-coral);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;padding-top:max(14px, env(safe-area-inset-top, 14px))}
+.admin-fs-header h2{font-family:'Playfair Display',serif;font-size:16px;color:var(--cream)}
+.admin-fs-body{flex:1;overflow-y:auto;padding:14px 16px 40px}
+.admin-fs-body::-webkit-scrollbar{width:0}
+.admin-fs-close{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:50%;width:32px;height:32px;cursor:pointer;color:var(--cream);font-size:16px;display:flex;align-items:center;justify-content:center}
+.modal-bg{position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.8);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(5px);padding:0}
+.modal-bg.show{display:flex}
+.modal-box{background:#0c2826;border:1px solid var(--b-coral);border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0));width:100%;max-width:520px;max-height:92vh;overflow-y:auto}
+.modal-box::-webkit-scrollbar{width:0}
+.modal-box h3{font-family:'Playfair Display',serif;font-size:16px;color:var(--cream);margin-bottom:12px;border-bottom:1px solid var(--b-coral);padding-bottom:9px}
+.modal-box .aform{background:transparent;border:none;padding:0}
+.modal-box .aform input[type=text],.modal-box .aform textarea{font-size:16px}
+.mfooter{display:flex;gap:8px;margin-top:12px;justify-content:flex-end}
+.qr-box{background:#0c2826;border:1px solid var(--b-coral);border-radius:18px 18px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0));max-width:360px;width:100%}
+.mobile-admin-fab{display:none;position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0));right:20px;z-index:1500;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#d4572a,#b03d15);border:none;cursor:pointer;color:#fff;font-size:22px;box-shadow:0 4px 20px rgba(212,87,42,.5);align-items:center;justify-content:center}
+.mobile-admin-fab.show{display:flex}
+@media(min-width:681px){
+.modal-bg{align-items:center;padding:20px}
+.modal-box{border-radius:12px;max-height:88vh}
+.qr-box{border-radius:12px}
+}
+@media(max-width:680px){
+html,body{overflow:auto}
+.app{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:auto;min-height:100vh}
+.sidebar{height:auto;border-right:none;border-bottom:1px solid var(--b-coral)}
+.mural-list{max-height:240px}
+.admin-wrap{display:none}
+.admin-panel{display:none !important}
+.map-area{height:60vw;min-height:280px;max-height:400px}
+.map-container{flex:1;height:100%}
+.detail-desktop{display:none !important}
+.mobile-admin-fab{display:flex}
+.legend{bottom:8px;right:8px}
+}</style>
+</head>
+<body>
+<div class="bg"> <svg style="position:absolute;top:-80px;left:-100px;width:560px;opacity:.07" viewBox="0 0 500 400"><path d="M-50 200 Q120 60 280 220 Q440 380 580 140" stroke="#d4572a" stroke-width="90" stroke-linecap="round" fill="none"/></svg> <svg style="position:absolute;bottom:-100px;right:-80px;width:480px;opacity:.06" viewBox="0 0 500 400"><path d="M0 250 Q160 80 320 260 Q480 440 620 180" stroke="#1e6e68" stroke-width="100" stroke-linecap="round" fill="none"/></svg> <svg style="position:absolute;top:25%;right:10%;width:280px;opacity:.04" viewBox="0 0 280 280"><circle cx="140" cy="140" r="110" stroke="#c9a44a" stroke-width="55" fill="none"/></svg>
+</div>
+<div class="app"> <div class="sidebar"> <div class="sidebar-header"> <h1 id="hdr-title">Galveston's Historic Downtown Cultural Arts District</h1> <div class="sub1" id="hdr-sub1">Murals Located in the Cultural Arts District</div> <div class="sub2" id="hdr-sub2">19th Street to 27th Street · Broadway to Bay</div> <span class="badge" id="hdr-badge">📍 Post Office Street Corridor</span> </div> <div class="passport-bar" id="pp-toggle"> <div class="passport-top"> <span class="plabel" id="pp-title">🗺️ Mural Passport</span> <span class="plabel" id="pp-count">0 / 0 found</span> </div> <div class="pprog"><div class="pfill" id="pp-fill" style="width:0%"></div></div> <div class="pexp" id="pp-exp"> <strong style="color:#7dd4cc;font-size:10.5px">How to collect your stamps:</strong> <div class="pstep"><span class="pnum">1</span><span>Walk up to any mural in the district</span></div> <div class="pstep"><span class="pnum">2</span><span>Find it in this list — tap the <strong style="color:#7dd4cc">○ circle</strong> beside its name to stamp it green ✓</span></div> <div class="pstep"><span class="pnum">3</span><span>Or open the mural and tap <strong style="color:#7dd4cc">"Stamp my passport"</strong></span></div> <div class="pstep"><span class="pnum">4</span><span>Collect them all — become a <strong style="color:#e0c06a">Cultural Arts Explorer! 🎨</strong></span></div> </div> </div> <div class="search-wrap"><input type="text" id="search" placeholder="Search murals or artists…" autocomplete="off"/></div> <div class="mural-list" id="mural-list"></div> <div class="admin-wrap"> <button class="admin-btn" id="admin-toggle-btn">🔒 Admin panel</button> </div> <div class="admin-panel" id="admin-panel"> <div id="admin-auth" class="aform"> <label>Admin password</label> <input type="password" id="admin-pw" placeholder="Enter password…" autocomplete="current-password"/> <button class="btn-primary" id="admin-login-btn">Unlock</button> <p id="auth-err" style="font-size:10px;color:#f09595;margin-top:5px;display:none">Incorrect password</p> </div> <div id="admin-controls" style="display:none"> <div class="asect">✏️ Edit header text</div> <div class="aform"> <label>Main title</label><input type="text" id="et-title"/> <label>Subtitle line 1</label><input type="text" id="et-sub1"/> <label>Subtitle line 2</label><input type="text" id="et-sub2"/> <label>District badge</label><input type="text" id="et-badge"/> <label>Passport title</label><input type="text" id="et-pp"/> <button class="btn-primary" id="save-text-btn">Save text</button> </div> <div class="asect">➕ Add new mural</div> <div class="aform" id="add-form-desktop"> <label>Mural title</label><input type="text" id="f-title" placeholder="e.g. Pelican Row"/> <label>Address</label><input type="text" id="f-address" placeholder="e.g. 2218 Post Office St"/> <div class="form-row"> <div><label>Latitude</label><input type="text" id="f-lat" placeholder="29.3009"/></div> <div><label>Longitude</label><input type="text" id="f-lng" placeholder="-94.7977"/></div> </div> <label>Artist name</label><input type="text" id="f-artist"/> <label>Artist bio</label><textarea id="f-bio" rows="2" placeholder="Brief bio…"></textarea> <label>Artist website URL</label><input type="text" id="f-website" placeholder="https://…"/> <label>Year painted</label><input type="text" id="f-year" placeholder="2024"/> <label>Description</label><textarea id="f-desc" rows="2"></textarea> <label>Mural photo (JPEG/PNG)</label> <div class="upbox"><input type="file" id="f-img" accept="image/jpeg,image/png"/><span id="lbl-mural">📷 Upload mural photo</span><img id="prev-mural" class="upprev" style="display:none" alt=""/></div> <label>Artist photo (JPEG/PNG)</label> <div class="upbox"><input type="file" id="f-artist-img" accept="image/jpeg,image/png"/><span id="lbl-artist">👤 Upload artist photo</span><img id="prev-artist" class="upprev" style="display:none" alt=""/></div> <button class="btn-primary" id="add-btn">Add mural</button> </div> </div> </div> </div> <div class="map-area"> <div class="map-container"> <div id="map"></div> <div class="feat-ribbon" id="feat-ribbon">⭐ Featured</div> <div class="legend"> <div><span class="ldot" style="background:#d4572a"></span>Mural</div> <div style="margin-top:3px"><span class="ldot" style="background:#1e6e68"></span>Visited</div> </div> </div> <div class="detail-desktop" id="detail-desktop"> <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px"> <span style="font-size:11px;color:rgba(245,237,227,.4)">Tap a mural for details</span> <button class="close-btn" id="close-desktop">×</button> </div> <div class="detail-grid" id="detail-inner-desktop"></div> </div> </div>
+</div>
+<div class="sheet-overlay" id="sheet-overlay"></div>
+<div class="sheet" id="sheet"> <div class="sheet-handle"></div> <div class="sheet-scroll"> <div class="sheet-detail-grid" id="detail-inner-mobile"></div> </div>
+</div>
+<button class="mobile-admin-fab" id="mobile-admin-fab" aria-label="Admin panel">🔒</button>
+<div class="admin-fs" id="admin-fs"> <div class="admin-fs-header"> <h2>🎨 Admin Panel</h2> <button class="admin-fs-close" id="admin-fs-close">×</button> </div> <div class="admin-fs-body"> <div id="m-admin-auth" class="aform"> <label>Admin password</label> <input type="password" id="m-admin-pw" placeholder="Enter password…" autocomplete="current-password" style="font-size:16px"/> <button class="btn-primary" id="m-admin-login-btn">Unlock</button> <p id="m-auth-err" style="font-size:11px;color:#f09595;margin-top:5px;display:none">Incorrect password</p> </div> <div id="m-admin-controls" style="display:none"> <div class="asect">✏️ Edit header text</div> <div class="aform"> <label>Main title</label><input type="text" id="m-et-title" style="font-size:16px"/> <label>Subtitle line 1</label><input type="text" id="m-et-sub1" style="font-size:16px"/> <label>Subtitle line 2</label><input type="text" id="m-et-sub2" style="font-size:16px"/> <label>District badge</label><input type="text" id="m-et-badge" style="font-size:16px"/> <label>Passport title</label><input type="text" id="m-et-pp" style="font-size:16px"/> <button class="btn-primary" id="m-save-text-btn">Save text</button> </div> <div class="asect">➕ Add new mural</div> <div class="aform"> <label>Mural title</label><input type="text" id="m-f-title" placeholder="e.g. Pelican Row" style="font-size:16px"/> <label>Address</label><input type="text" id="m-f-address" placeholder="e.g. 2218 Post Office St" style="font-size:16px"/> <div class="form-row"> <div><label>Latitude</label><input type="text" id="m-f-lat" placeholder="29.3009" style="font-size:16px"/></div> <div><label>Longitude</label><input type="text" id="m-f-lng" placeholder="-94.7977" style="font-size:16px"/></div> </div> <label>Artist name</label><input type="text" id="m-f-artist" style="font-size:16px"/> <label>Artist bio</label><textarea id="m-f-bio" rows="2" placeholder="Brief bio…" style="font-size:16px"></textarea> <label>Artist website URL</label><input type="text" id="m-f-website" placeholder="https://…" style="font-size:16px"/> <label>Year painted</label><input type="text" id="m-f-year" placeholder="2024" style="font-size:16px"/> <label>Description</label><textarea id="m-f-desc" rows="2" style="font-size:16px"></textarea> <label>Mural photo (JPEG/PNG)</label> <div class="upbox"><input type="file" id="m-f-img" accept="image/jpeg,image/png"/><span id="m-lbl-mural">📷 Upload mural photo</span><img id="m-prev-mural" class="upprev" style="display:none" alt=""/></div> <label>Artist photo (JPEG/PNG)</label> <div class="upbox"><input type="file" id="m-f-artist-img" accept="image/jpeg,image/png"/><span id="m-lbl-artist">👤 Upload artist photo</span><img id="m-prev-artist" class="upprev" style="display:none" alt=""/></div> <button class="btn-primary" id="m-add-btn">Add mural</button> </div> </div> </div>
+</div>
+<div class="modal-bg" id="edit-modal"> <div class="modal-box"> <div class="sheet-handle" style="margin-bottom:10px"></div> <h3>✏️ Edit Mural</h3> <input type="hidden" id="em-id"/> <div class="aform"> <label>Mural title</label><input type="text" id="em-title" style="font-size:16px"/> <label>Address</label><input type="text" id="em-address" style="font-size:16px"/> <div class="form-row"> <div><label>Latitude</label><input type="text" id="em-lat" style="font-size:16px"/></div> <div><label>Longitude</label><input type="text" id="em-lng" style="font-size:16px"/></div> </div> <label>Year</label><input type="text" id="em-year" style="font-size:16px"/> <label>Description</label><textarea id="em-desc" rows="3" style="font-size:16px"></textarea> <label>Artist name</label><input type="text" id="em-artist" style="font-size:16px"/> <label>Artist bio</label><textarea id="em-bio" rows="3" style="font-size:16px"></textarea> <label>Artist website URL</label><input type="text" id="em-website" placeholder="https://…" style="font-size:16px"/> <label>Replace mural photo</label> <div class="upbox"><input type="file" id="em-img" accept="image/jpeg,image/png"/><span id="em-lbl-mural">📷 Click to replace</span><img id="em-prev-mural" class="upprev" style="display:none" alt=""/></div> <label>Replace artist photo</label> <div class="upbox"><input type="file" id="em-artist-img" accept="image/jpeg,image/png"/><span id="em-lbl-artist">👤 Click to replace</span><img id="em-prev-artist" class="upprev" style="display:none" alt=""/></div> </div> <div class="mfooter"> <button class="btn-sec" id="em-cancel">Cancel</button> <button class="btn-primary" style="width:auto" id="em-save">Save changes</button> </div> </div>
+</div>
+<div class="modal-bg" id="qr-modal"> <div class="qr-box"> <div class="sheet-handle" style="margin-bottom:10px"></div> <h3 id="qr-title" style="font-family:'Playfair Display',serif;font-size:15px;color:var(--cream);margin-bottom:3px"></h3> <p id="qr-sub" style="font-size:10px;color:rgba(245,237,227,.45);margin-bottom:13px"></p> <div id="qr-canvas" style="display:block;margin:0 auto;border-radius:6px;overflow:hidden"></div> <p style="font-size:10px;color:rgba(245,237,227,.35);margin-top:8px;text-align:center">Place at the mural — visitors scan to open the full map</p> <div style="display:flex;gap:8px;margin-top:12px;justify-content:center"> <button class="abtn" id="qr-dl">⬇ Download</button> <button class="abtn" id="qr-close">✕ Close</button> </div> </div>
+</div>
+<script>const ADMIN_PW = "murals2024";
+const BASE_URL = "https://galvestonmurals.org/map";
+const BOUNDS = L.latLngBounds(L.latLng(29.295,-94.808), L.latLng(29.308,-94.789));
+const IS_MOBILE = () => window.innerWidth <= 680;
+const DEF_MURALS = [ {id:1,title:"Absolute Equality",address:"22nd & The Strand",lat:29.3017,lng:-94.7985,artist:"Reginald C. Adams",bio:"Houston-based artist known for large-scale public works exploring justice and identity. Commissioned through the Juneteenth Legacy Project.",website:"https://www.reginaldc-adams.com",year:2021,desc:"Covering 5,000 sq ft, this landmark mural honors Galveston as the Birthplace of Juneteenth.",img:"",artistImg:"",featured:true,visited:false}, {id:2,title:"Greetings From Galveston",address:"23rd & The Strand",lat:29.3015,lng:-94.7975,artist:"Gabriel Prusmak",bio:"Local Galveston artist celebrated for colorful murals blending coastal imagery with bold typography.",website:"",year:2016,desc:"Painted in vintage postcard style, each letter highlights a different facet of Galveston.",img:"",artistImg:"",featured:false,visited:false}, {id:3,title:"I Love Galveston",address:"24th & The Strand",lat:29.3013,lng:-94.7965,artist:"Gabriel Prusmak",bio:"Local Galveston artist celebrated for colorful murals blending coastal imagery with bold typography.",website:"",year:2018,desc:"Marine life surrounds a hand-lettered 'i ❤️ galveston' in this beloved coastal mural.",img:"",artistImg:"",featured:false,visited:false}, {id:4,title:"Postoffice Street Collection",address:"22nd & Post Office St",lat:29.3008,lng:-94.7982,artist:"Multiple Artists",bio:"A 2025 series by local and visiting artists adding fresh color to the Cultural Arts District.",website:"",year:2025,desc:"New murals along storefronts reflecting the creative energy of Post Office Street.",img:"",artistImg:"",featured:false,visited:false}, {id:5,title:"Huli Huli Hut Mural",address:"25th & Post Office St",lat:29.3006,lng:-94.797,artist:"Justin Lopez",bio:"Galveston-based muralist whose tropical coastal style brings warmth and energy to island businesses.",website:"",year:2023,desc:"A surfer gazing over the Gulf in bold tropical colors — pure island spirit.",img:"",artistImg:"",featured:false,visited:false}, {id:6,title:"Stay Beach Box Mural",address:"25th & Market St",lat:29.301,lng:-94.7968,artist:"Carlos Villasana",bio:"Galveston artist exploring spray paint techniques through large-format public commissions.",website:"",year:2022,desc:"Bold coastal imagery adding color and energy to the Rosenberg Ave corridor.",img:"",artistImg:"",featured:false,visited:false}, {id:7,title:"Do You Hear the Sound of Galveston?",address:"28th & Seawall Blvd",lat:29.2967,lng:-94.794,artist:"Sasha Primo",bio:"Latin American artist whose large-scale works engage with local history and architecture.",website:"https://sashaprimo.com",year:2024,desc:"A 20×50ft mural honoring conductor Willard Dickerson, who broke racial barriers in Galveston schools.",img:"",artistImg:"",featured:false,visited:false},
+];
+const DEF_TEXTS = {title:"Galveston's Historic Downtown Cultural Arts District",sub1:"Murals Located in the Cultural Arts District",sub2:"19th Street to 27th Street · Broadway to Bay",badge:"📍 Post Office Street Corridor",ppTitle:"🗺️ Mural Passport"};
+let murals = null;
+let texts = null;
+let selId = null, admin = false;
+let pMural = '', pArtist = '';
+let mPMural = '', mPArtist = '';
+let eMural = null, eArtist = null;
+let map, markers = {};
+function save(){
+  try{ localStorage.setItem('gv_m7', JSON.stringify(murals)); return; }catch(e){}
+  try{ sessionStorage.setItem('gv_m7', JSON.stringify(murals)); return; }catch(e){}
+  // stored in memory only as fallback
+}
+function saveTxt(){
+  try{ localStorage.setItem('gv_t7', JSON.stringify(texts)); return; }catch(e){}
+  try{ sessionStorage.setItem('gv_t7', JSON.stringify(texts)); return; }catch(e){}
+}
+function loadData(key, def){
+  try{ const v=localStorage.getItem(key); if(v) return JSON.parse(v); }catch(e){}
+  try{ const v=sessionStorage.getItem(key); if(v) return JSON.parse(v); }catch(e){}
+  return def;
+}
+function applyTexts(){ document.getElementById('hdr-title').textContent = texts.title; document.getElementById('hdr-sub1').textContent = texts.sub1; document.getElementById('hdr-sub2').textContent = texts.sub2; document.getElementById('hdr-badge').textContent = texts.badge; document.getElementById('pp-title').textContent = texts.ppTitle; if(admin){ document.getElementById('et-title').value = texts.title; document.getElementById('et-sub1').value = texts.sub1; document.getElementById('et-sub2').value = texts.sub2; document.getElementById('et-badge').value = texts.badge; document.getElementById('et-pp').value = texts.ppTitle; document.getElementById('m-et-title').value = texts.title; document.getElementById('m-et-sub1').value = texts.sub1; document.getElementById('m-et-sub2').value = texts.sub2; document.getElementById('m-et-badge').value = texts.badge; document.getElementById('m-et-pp').value = texts.ppTitle; }
+}
+function makePin(m){ const c = m.visited ? '#1e6e68' : '#d4572a'; const inner = m.img ? `<img src="${m.img}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>` : `<span style="font-size:13px;color:${c};font-weight:800">${(m.title||'?')[0]}</span>`; return L.divIcon({ html:`<div style="width:50px;height:62px;display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 3px 10px rgba(0,0,0,.6))"> <div style="width:44px;height:44px;border-radius:50%;border:3px solid ${c};overflow:hidden;background:#f0ece8;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.35)">${inner}</div> <div style="width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:14px solid ${c};margin-top:-1px"></div> </div>`, iconSize:[50,62], iconAnchor:[25,62], className:'' });
+}
+function initMap(){ map = L.map('map',{center:[29.3005,-94.7978],zoom:16,minZoom:15,maxZoom:18,maxBounds:BOUNDS,maxBoundsViscosity:1.0}); L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:19}).addTo(map); L.rectangle(BOUNDS,{color:'#d4572a',weight:2,fillColor:'#d4572a',fillOpacity:0.03,dashArray:'7 4'}).addTo(map); renderMarkers();
+}
+function renderMarkers(){ Object.values(markers).forEach(m=>m.remove()); markers = {}; murals.forEach(m=>{ const mk = L.marker([m.lat,m.lng],{icon:makePin(m)}).addTo(map); mk.on('click',()=>selectMural(m.id)); markers[m.id] = mk; });
+}
+function renderList(f=''){ const fl = f.toLowerCase(); const filt = murals.filter(m=> m.title.toLowerCase().includes(fl)|| m.artist.toLowerCase().includes(fl)|| m.address.toLowerCase().includes(fl) ); document.getElementById('mural-list').innerHTML = filt.map(m=>` <div class="mural-item${selId===m.id?' active':''}" data-id="${m.id}"> <div class="mural-row"> <div class="mural-thumb">${m.img?`<img src="${m.img}" alt="${m.title}"/>`:`<span style="color:#d4572a;font-weight:800;font-size:15px">${(m.title||'?')[0]}</span>`}</div> <div class="mural-info"> <div class="mural-name">${m.title}${m.featured?' ⭐':''}</div> <div class="mural-addr">📍 ${m.address}</div> <div class="mural-artist">${m.artist}</div> </div> <div class="stamp${m.visited?' visited':''}" data-pid="${m.id}" role="button" aria-label="${m.visited?'Visited':'Mark visited'}">${m.visited?'✓':''}</div> </div> </div>`).join(''); document.querySelectorAll('.mural-item').forEach(el=> el.addEventListener('click',e=>{if(e.target.closest('.stamp'))return; selectMural(parseInt(el.dataset.id));}) ); document.querySelectorAll('.stamp[data-pid]').forEach(el=> el.addEventListener('click',e=>{e.stopPropagation(); toggleVisited(parseInt(el.dataset.pid));}) ); updatePassport();
+}
+function updatePassport(){ const v = murals.filter(m=>m.visited).length, t = murals.length; document.getElementById('pp-fill').style.width = t?((v/t)*100)+'%':'0%'; document.getElementById('pp-count').textContent = v+' / '+t+' found';
+}
+function toggleVisited(id){ const m = murals.find(m=>m.id===id); if(m){ m.visited=!m.visited; save(); renderList(document.getElementById('search').value); renderMarkers(); }
+}
+function buildDetail(m, isMobile){ const ini = m.artist.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); const av = m.artistImg?`<img src="${m.artistImg}" alt="${m.artist}"/>`:`<span>${ini}</span>`; const gridClass = isMobile ? 'sheet-detail-grid' : 'detail-grid'; const cols = isMobile ? '1fr' : '1fr 1fr'; return ` <div style="display:grid;grid-template-columns:${cols};gap:13px"> <div> <div style="width:100%;height:118px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center"> ${m.img?`<img src="${m.img}" alt="${m.title}" style="width:100%;height:100%;object-fit:cover"/>`:`<span style="font-size:36px;color:#d4572a;font-weight:800">${(m.title||'?')[0]}</span>`} </div> <div style="margin-top:9px"> <h2 style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--cream)">${m.title}</h2> <p style="font-size:10px;color:rgba(245,237,227,.4);margin-top:3px">📍 ${m.address}</p> <span class="tag-yr">${m.year}</span> <p style="font-size:11px;color:rgba(245,237,227,.72);margin-top:7px;line-height:1.55">${m.desc}</p> </div> <div style="display:flex;gap:6px;margin-top:9px;flex-wrap:wrap"> <button class="abtn dir" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination='+this.dataset.lat+','+this.dataset.lng+'&travelmode=walking','_blank')" data-lat="${m.lat}" data-lng="${m.lng}">🧭 Directions</button> ${admin?`<button class="abtn edit" data-edit="${m.id}">✏️ Edit</button>`:''} ${admin?`<button class="abtn" data-qr="${m.id}">⬛ QR</button>`:''} ${admin?`<button class="btn-danger" data-del="${m.id}">🗑</button>`:''} </div> </div> <div> <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:10px"> <p style="font-size:10px;font-weight:700;color:rgba(245,237,227,.35);margin-bottom:8px;text-transform:uppercase;letter-spacing:.07em">About the Artist</p> <div style="display:flex;gap:10px;align-items:flex-start"> <div class="av">${av}</div> <div style="flex:1;min-width:0"> <p style="font-size:13px;font-weight:700;color:var(--cream)">${m.artist}</p> <p style="font-size:11px;color:rgba(245,237,227,.58);line-height:1.5;margin-top:3px">${m.bio}</p> ${m.website?`<button class="abtn" style="font-size:11px;color:#e8784d;background:transparent;border:none;padding:0;margin-top:5px;display:inline-flex;align-items:center;gap:3px;cursor:pointer;text-decoration:underline" onclick="window.open('${m.website}','_blank')">🔗 Artist website</button>`:''} </div> </div> </div> <div style="margin-top:10px;padding:9px 11px;background:rgba(30,110,104,.14);border-radius:8px;border:1px solid rgba(30,110,104,.28)"> <p style="font-size:10px;font-weight:700;color:rgba(245,237,227,.38);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em">🗺️ Your Passport</p> <div style="display:flex;align-items:center;gap:10px"> <div class="stamp${m.visited?' visited':''}" data-pp="${m.id}" style="width:30px;height:30px;cursor:pointer;font-size:14px;min-width:30px">${m.visited?'✓':''}</div> <span style="font-size:11px;color:rgba(245,237,227,.52)">${m.visited?'✅ Stamped! Mural collected!':'Tap to stamp your passport'}</span> </div> </div> </div> </div>`;
+}
+function attachDetailEvents(container, m){ container.querySelectorAll('[data-edit]').forEach(btn=>btn.addEventListener('click',()=>openEdit(m.id))); container.querySelectorAll('[data-qr]').forEach(btn=>btn.addEventListener('click',()=>showQR(m))); container.querySelectorAll('[data-del]').forEach(btn=>btn.addEventListener('click',()=>delMural(m.id))); container.querySelectorAll('[data-pp]').forEach(btn=>btn.addEventListener('click',()=>{toggleVisited(m.id); selectMural(m.id);}));
+}
+function selectMural(id){ selId = id; const m = murals.find(m=>m.id===id); if(!m) return; map.setView([m.lat,m.lng],17); document.getElementById('feat-ribbon').style.display = m.featured?'block':'none'; if(IS_MOBILE()){ const inner = document.getElementById('detail-inner-mobile'); inner.innerHTML = buildDetail(m, true); attachDetailEvents(inner, m); document.getElementById('sheet').classList.add('show'); document.getElementById('sheet-overlay').classList.add('show'); } else { const panel = document.getElementById('detail-desktop'); const inner = document.getElementById('detail-inner-desktop'); inner.innerHTML = buildDetail(m, false); attachDetailEvents(inner, m); panel.classList.add('show'); } renderList(document.getElementById('search').value);
+}
+function closeDetail(){ document.getElementById('detail-desktop').classList.remove('show'); document.getElementById('sheet').classList.remove('show'); document.getElementById('sheet-overlay').classList.remove('show'); selId = null; renderList(document.getElementById('search').value);
+}
+function openEdit(id){ const m = murals.find(m=>m.id===id); if(!m) return; eMural=null; eArtist=null; document.getElementById('em-id').value = id; ['title','address','lat','lng','year','desc','artist','bio','website'].forEach(k=>document.getElementById('em-'+k).value=m[k]||''); ['em-prev-mural','em-prev-artist'].forEach(i=>{const el=document.getElementById(i);el.style.display='none';el.src='';}); ['em-lbl-mural','em-lbl-artist'].forEach(i=>document.getElementById(i).style.display='block'); document.getElementById('em-img').value=''; document.getElementById('em-artist-img').value=''; document.getElementById('edit-modal').classList.add('show');
+}
+document.getElementById('em-img').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;compress(f,d=>{eMural=d;showPrev('em-prev-mural',d);hide('em-lbl-mural');});});
+document.getElementById('em-artist-img').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;compress(f,d=>{eArtist=d;showPrev('em-prev-artist',d);hide('em-lbl-artist');});});
+document.getElementById('em-save').addEventListener('click',()=>{ const id = parseInt(document.getElementById('em-id').value); const idx = murals.findIndex(m=>m.id===id); if(idx<0) return; ['title','address','year','desc','artist','bio','website'].forEach(k=>murals[idx][k]=document.getElementById('em-'+k).value); const lat = parseFloat(document.getElementById('em-lat').value); const lng = parseFloat(document.getElementById('em-lng').value); if(!isNaN(lat)) murals[idx].lat=lat; if(!isNaN(lng)) murals[idx].lng=lng; if(eMural) murals[idx].img=eMural; if(eArtist) murals[idx].artistImg=eArtist; save(); document.getElementById('edit-modal').classList.remove('show'); renderList(document.getElementById('search').value); renderMarkers(); selectMural(id);
+});
+document.getElementById('em-cancel').addEventListener('click',()=>document.getElementById('edit-modal').classList.remove('show'));
+document.getElementById('edit-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('show');});
+function showQR(m){ document.getElementById('qr-canvas').innerHTML=''; document.getElementById('qr-title').textContent=m.title; document.getElementById('qr-sub').textContent=m.artist+' · '+m.address; new QRCode(document.getElementById('qr-canvas'),{text:BASE_URL+'?mural='+m.id,width:180,height:180,colorDark:'#1a1a1a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H}); document.getElementById('qr-modal').classList.add('show'); document.getElementById('qr-dl').onclick=()=>{const c=document.querySelector('#qr-canvas canvas');if(c){const a=document.createElement('a');a.download=m.title.replace(/\s+/g,'_')+'_QR.png';a.href=c.toDataURL();a.click();}};
+}
+function delMural(id){ if(!confirm('Remove this mural from the map?')) return; murals=murals.filter(m=>m.id!==id); save(); closeDetail(); renderList(); renderMarkers();
+}
+function doAddMural(prefix, muralImg, artistImg){ const title = document.getElementById(prefix+'f-title').value.trim(); const lat = parseFloat(document.getElementById(prefix+'f-lat').value); const lng = parseFloat(document.getElementById(prefix+'f-lng').value); if(!title||isNaN(lat)||isNaN(lng)){ alert('Title, latitude, and longitude are required.'); return false; } murals.push({ id:Date.now(), title, address : document.getElementById(prefix+'f-address').value||'', lat, lng, artist : document.getElementById(prefix+'f-artist').value||'Unknown', bio : document.getElementById(prefix+'f-bio').value||'', website : document.getElementById(prefix+'f-website').value||'', year : document.getElementById(prefix+'f-year').value||new Date().getFullYear(), desc : document.getElementById(prefix+'f-desc').value||'', img : muralImg, artistImg, featured:false, visited:false }); save(); renderList(); renderMarkers(); [prefix+'f-title',prefix+'f-address',prefix+'f-lat',prefix+'f-lng', prefix+'f-artist',prefix+'f-bio',prefix+'f-website',prefix+'f-year',prefix+'f-desc'].forEach(i=>{ const el=document.getElementById(i); if(el) el.value=''; }); return true;
+}
+function compress(file,cb){ const r=new FileReader(); r.onload=e=>{ const i=new Image(); i.onload=()=>{ const c=document.createElement('canvas'); const M=800; let w=i.width,h=i.height; if(w>M){h=Math.round(h*(M/w));w=M;} if(h>M){w=Math.round(w*(M/h));h=M;} c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h); cb(c.toDataURL('image/jpeg',0.75)); }; i.src=e.target.result; }; r.readAsDataURL(file);
+}
+function showPrev(id,src){const el=document.getElementById(id);el.src=src;el.style.display='block';}
+function hide(id){document.getElementById(id).style.display='none';}
+function setupUpload(fid,pid,lid,cb){ document.getElementById(fid).addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;compress(f,d=>{cb(d);showPrev(pid,d);hide(lid);});}); }
+setupUpload('f-img', 'prev-mural', 'lbl-mural', d=>pMural=d);
+setupUpload('f-artist-img', 'prev-artist', 'lbl-artist', d=>pArtist=d);
+setupUpload('m-f-img', 'm-prev-mural', 'm-lbl-mural', d=>mPMural=d);
+setupUpload('m-f-artist-img', 'm-prev-artist', 'm-lbl-artist', d=>mPArtist=d);
+document.getElementById('add-btn').addEventListener('click',()=>{ if(doAddMural('',pMural,pArtist)){ pMural='';pArtist=''; ['prev-mural','prev-artist'].forEach(i=>{const el=document.getElementById(i);el.style.display='none';el.src='';}); ['lbl-mural','lbl-artist'].forEach(i=>document.getElementById(i).style.display='block'); document.getElementById('f-img').value='';document.getElementById('f-artist-img').value=''; alert('Mural added!'); }
+});
+document.getElementById('m-add-btn').addEventListener('click',()=>{ if(doAddMural('m-',mPMural,mPArtist)){ mPMural='';mPArtist=''; ['m-prev-mural','m-prev-artist'].forEach(i=>{const el=document.getElementById(i);el.style.display='none';el.src='';}); ['m-lbl-mural','m-lbl-artist'].forEach(i=>document.getElementById(i).style.display='block'); document.getElementById('m-f-img').value='';document.getElementById('m-f-artist-img').value=''; alert('Mural added! Close the admin panel to see it on the map.'); }
+});
+document.getElementById('admin-toggle-btn').addEventListener('click',()=>{ document.getElementById('admin-panel').classList.toggle('show');
+});
+document.getElementById('admin-login-btn').addEventListener('click',()=>{
+  const pw = document.getElementById('admin-pw').value;
+  if(pw === ADMIN_PW){
+    admin=true;
+    document.getElementById('admin-auth').style.display='none';
+    document.getElementById('admin-controls').style.display='block';
+    document.getElementById('admin-toggle-btn').textContent='🔓 Admin (unlocked)';
+    applyTexts();
+  } else {
+    document.getElementById('auth-err').style.display='block';
+  }
+});
+document.getElementById('save-text-btn').addEventListener('click',()=>{ texts.title = document.getElementById('et-title').value; texts.sub1 = document.getElementById('et-sub1').value; texts.sub2 = document.getElementById('et-sub2').value; texts.badge = document.getElementById('et-badge').value; texts.ppTitle = document.getElementById('et-pp').value; saveTxt(); applyTexts(); alert('Text saved!');
+});
+document.getElementById('mobile-admin-fab').addEventListener('click',()=>{ document.getElementById('admin-fs').classList.add('show');
+});
+document.getElementById('admin-fs-close').addEventListener('click',()=>{ document.getElementById('admin-fs').classList.remove('show');
+});
+document.getElementById('m-admin-login-btn').addEventListener('click',()=>{
+  const pw = document.getElementById('m-admin-pw').value;
+  if(pw === ADMIN_PW){
+    admin=true;
+    document.getElementById('m-admin-auth').style.display='none';
+    document.getElementById('m-admin-controls').style.display='block';
+    document.getElementById('mobile-admin-fab').textContent='🔓';
+    applyTexts();
+  } else {
+    document.getElementById('m-auth-err').style.display='block';
+  }
+});
+document.getElementById('m-save-text-btn').addEventListener('click',()=>{ texts.title = document.getElementById('m-et-title').value; texts.sub1 = document.getElementById('m-et-sub1').value; texts.sub2 = document.getElementById('m-et-sub2').value; texts.badge = document.getElementById('m-et-badge').value; texts.ppTitle = document.getElementById('m-et-pp').value; saveTxt(); applyTexts(); alert('Text saved!');
+});
+document.getElementById('sheet-overlay').addEventListener('click', closeDetail);
+let touchY = 0;
+document.getElementById('sheet').addEventListener('touchstart',e=>touchY=e.touches[0].clientY,{passive:true});
+document.getElementById('sheet').addEventListener('touchend',e=>{if(e.changedTouches[0].clientY - touchY > 60) closeDetail();},{passive:true});
+document.getElementById('close-desktop').addEventListener('click', closeDetail);
+document.getElementById('qr-close').addEventListener('click',()=>document.getElementById('qr-modal').classList.remove('show'));
+document.getElementById('qr-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('show');});
+document.getElementById('search').addEventListener('input',e=>renderList(e.target.value));
+document.getElementById('pp-toggle').addEventListener('click',()=>document.getElementById('pp-exp').classList.toggle('show'));
+window.addEventListener('load',()=>{ setTimeout(()=>{ murals = loadData('gv_m7', DEF_MURALS); texts = loadData('gv_t7', {...DEF_TEXTS}); initMap(); applyTexts(); renderList(); }, 300);
+});
+</script>
+</body>
+</html>
